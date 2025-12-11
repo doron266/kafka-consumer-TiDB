@@ -69,10 +69,12 @@ services:
     ports:
       - "8300:8300"
     restart: on-failure
+    
+volumes:
+  pd-data:
+  tikv-data:
+  
 networks:
   myitdb:
     driver: bridge
 
-volumes:
-  pd-data:
-  tikv-data:
