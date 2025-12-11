@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  pd:
+    image: pingcap/pd:latest
+    container_name: pd
+    command:
+      - --name=pd
+      - --data-dir=/data/pd
+      - --client-urls=http://0.0.0.0:2379
+      - --peer-urls=http://0.0.0.0:2380
+      - --initial-cluster=pd=http://pd:2380
+      - --initial-cluster-state=new
+    ports:
+      - "2379:2379"
+    volumes:
+      - pd-data:/data
+
+  tikv:
+    image: pingcap/tikv:latest
+    container_name: tikv
+    depends_on:
+      - pd
+    command:
+      - --addr=0.0.0.0:20160
+      - --advertise-addr=tikv:20160
+      - --data-dir=/data/tikv
+      - --pd=pd:2379
+    ports:
+      - "20160:20160"
+    volumes:
+      - tikv-data:/data
+
+  tidb:
+    image: pingcap/tidb:latest
+    container_name: tidb
+    depends_on:
+      - pd
+      - tikv
+    command:
+      - --store=tikv
+      - --path=pd:2379
+      - --log-level=info
+    ports:
+      - "4000:4000" # SQL port
+      - "10080:10080" # Status port
+
+  ticdc:
+    image: pingcap/ticdc:latest
+    container_name: ticdc
+    depends_on:
+      - pd
+    command:
+      - server
+      - --pd=http://pd:2379
+      - --addr=0.0.0.0:8300
+      - --advertise-addr=ticdc:8300
+    ports:
+      - "8300:8300"
+
+volumes:
+  pd-data:
+  tikv-data:
