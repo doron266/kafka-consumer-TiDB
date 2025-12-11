@@ -20,13 +20,13 @@ services:
   tikv:
     image: pingcap/tikv:latest
     container_name: tikv
-    depends_on:
-      - pd
     command:
       - --addr=0.0.0.0:20160
       - --advertise-addr=tikv:20160
       - --data-dir=/data/tikv
       - --pd=pd:2379
+    depends_on:
+      - "pd"
     ports:
       - "20160:20160"
     volumes:
@@ -35,12 +35,12 @@ services:
   tidb:
     image: pingcap/tidb:latest
     container_name: tidb
-    depends_on:
-      - pd
-      - tikv
     command:
       - --store=tikv
-      - --path=pd:2379
+      - --path=pd:2379      
+    depends_on:
+      - "pd"
+      - "tikv"
     ports:
       - "4000:4000" # SQL port
       - "10080:10080" # Status port
@@ -48,13 +48,13 @@ services:
   ticdc:
     image: pingcap/ticdc:latest
     container_name: ticdc
-    depends_on:
-      - pd
     command:
       - server
       - --pd=http://pd:2379
       - --addr=0.0.0.0:8300
       - --advertise-addr=ticdc:8300
+    depends_on:
+      - "pd"
     ports:
       - "8300:8300"
 
