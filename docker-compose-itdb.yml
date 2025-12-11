@@ -14,8 +14,6 @@ services:
       - --peer-urls=http://0.0.0.0:2380
       - --advertise-peer-urls=http://pd:2380
       - --initial-cluster=pd=http://pd:2380
-    ports:
-      - "2379:2379"
     volumes:
       - pd-data:/data
 
