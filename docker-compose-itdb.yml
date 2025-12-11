@@ -75,6 +75,6 @@ volumes:
   tikv-data:
   
 networks:
-  myitdb:
+  mytidb:
     driver: bridge
 
