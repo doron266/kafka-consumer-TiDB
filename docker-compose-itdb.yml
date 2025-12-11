@@ -4,6 +4,8 @@ services:
   pd:
     image: pingcap/pd:latest
     container_name: pd
+    ports:
+      - "2379"
     command:
       - --name=pd
       - --data-dir=/data/pd
