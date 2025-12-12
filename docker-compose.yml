@@ -84,6 +84,27 @@ services:
 
   # Initialize CDC changefeed to capture database changes
   
+  db-init:
+    image: mysql:5.7
+    volumes:
+      - ./db:/db
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        echo "Waiting for TiDB to be ready..."
+        sleep 30
+        until mysql -h tidb -P 4000 -u root -e "SELECT 1" 2>/dev/null; do
+          echo "TiDB not ready, waiting..."
+          sleep 5
+        done
+        echo "TiDB is ready, initializing database..."
+        mysql -h tidb -P 4000 -u root < /db/schema.sql
+        echo "Database initialized successfully"
+    depends_on:
+      - tidb
+    networks:
+      - app-network
+  
 volumes:
   pd_data:
   tikv_data:
