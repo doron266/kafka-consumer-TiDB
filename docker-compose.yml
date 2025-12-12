@@ -117,11 +117,12 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 3
     command: 
+      - &&
       - ./kafka-topics.sh 
       - --bootstrap-server
       - localhost:9092
       - --create 
-      - --topic test-topic
+      - --topic mytopic
 
     volumes:
       - kafka_data:/bitnami/kafka
