@@ -4,6 +4,7 @@ services:
   
   pd:
     image: pingcap/pd:latest
+    container_name: pd
     ports:
       - "2379:2379"
     command:
@@ -18,9 +19,11 @@ services:
       - pd_data:/data
     networks:
       - app-network
+    restart: on-failure
 
   tikv:
     image: pingcap/tikv:latest
+    container_name: tikv
     command:
       - --addr=0.0.0.0:20160
       - --advertise-addr=tikv:20160
@@ -32,9 +35,11 @@ services:
       - pd
     networks:
       - app-network
+    restart: on-failure
 
   tidb:
     image: pingcap/tidb:latest
+    container_name: tidb
     ports:
       - "4000:4000"
       - "10080:10080"
@@ -46,10 +51,12 @@ services:
       - tikv
     networks:
       - app-network
+    restart: on-failure
 
   # TiCDC for Change Data Capture
   ticdc:
     image: pingcap/ticdc:latest
+    container_name: ticdc
     ports:
       - "8300:8300"
     command:
@@ -69,6 +76,7 @@ services:
       - tidb
     networks:
       - app-network
+    restart: on-failure
 
   # Initialize CDC changefeed to capture database changes
   
