@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  
+  pd:
+    image: pingcap/pd:latest
+    ports:
+      - "2379:2379"
+    command:
+      - --name=pd
+      - --client-urls=http://0.0.0.0:2379
+      - --peer-urls=http://0.0.0.0:2380
+      - --advertise-client-urls=http://pd:2379
+      - --advertise-peer-urls=http://pd:2380
+      - --initial-cluster=pd=http://pd:2380
+      - --data-dir=/data/pd
+    volumes:
+      - pd_data:/data
+    networks:
+      - app-network
+
+  tikv:
+    image: pingcap/tikv:latest
+    command:
+      - --addr=0.0.0.0:20160
+      - --advertise-addr=tikv:20160
+      - --pd=pd:2379
+      - --data-dir=/data/tikv
+    volumes:
+      - tikv_data:/data
+    depends_on:
+      - pd
+    networks:
+      - app-network
+
+  tidb:
+    image: pingcap/tidb:latest
+    ports:
+      - "4000:4000"
+      - "10080:10080"
+    command:
+      - --store=tikv
+      - --path=pd:2379
+      - --advertise-address=tidb
+    depends_on:
+      - tikv
+    networks:
+      - app-network
+
+  # TiCDC for Change Data Capture
+  ticdc:
+    image: pingcap/ticdc:latest
+    ports:
+      - "8300:8300"
+    command:
+      - /cdc
+      - server
+      - --pd=http://pd:2379
+      - --addr=0.0.0.0:8300
+      - --advertise-addr=ticdc:8300
+      - --log-file=""
+      - --log-level=info
+      - --data-dir=/data/ticdc
+    volumes:
+      - ticdc_data:/data
+    depends_on:
+      - pd
+      - tikv
+      - tidb
+    networks:
+      - app-network
+
+  # Initialize CDC changefeed to capture database changes
+  
+volumes:
+  pd_data:
+  tikv_data:
+  ticdc_data:
+
+networks:
+  app-network:
+    driver: bridge
