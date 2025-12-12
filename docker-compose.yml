@@ -79,6 +79,7 @@ services:
   
   db-init:
     image: mysql:5.7
+    container_name: db-init
     volumes:
       - ./db:/db
     entrypoint: ["/bin/bash", "-c"]
@@ -125,6 +126,7 @@ services:
 
   kafka-init:
     image: apache/kafka:latest
+    container_name: kafka_init
     command: >
       bash -c "
         sleep 15;
