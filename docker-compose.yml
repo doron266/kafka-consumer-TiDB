@@ -63,17 +63,10 @@ services:
     container_name: ticdc
     ports:
       - "8300:8300"
-    command:
-      - /cdc
-      - server
-      - --pd=http://pd:2379
-      - --addr=0.0.0.0:8300
-      - --advertise-addr=ticdc:8300
-      - --log-file=""
-      - --log-level=info
-      - --data-dir=/data/ticdc
     volumes:
-      - ticdc_data:/data
+      - ./init-ticdc.sh:/init-ticdc.sh
+      - ./ticdc-data:/data/ticdc
+    command: ["/bin/sh", "/init-ticdc.sh"]
     depends_on:
       - pd
       - tikv
@@ -106,49 +99,36 @@ services:
       - app-network
       
   kafka:
-    image: bitnami/kafka
+    image: apache/kafka:latest
     container_name: kafka
     ports:
-      - "9092:9092"
+      - 9092:9092
     environment:
-      # ==== KRaft basic config (no ZooKeeper) ====
       KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: 'controller,broker'
-      KAFKA_LISTENERS: 'PLAINTEXT://:9092,CONTROLLER://:9093'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
-      KAFKA_KRAFT_CLUSTER_ID: "abcdefghijklmnopqrstuv"
-
-      # ==== Single-broker internal topic settings ====
-      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_CFG_MIN_INSYNC_REPLICAS: 1
-
-      # ==== Auto-create topics on first use ====
-      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
-
-    command: >
-      sh -c "
-      /opt/bitnami/scripts/kafka/run.sh &
-      # wait for Kafka to start
-      sleep 8 &&
-      # create a default topic (change the name if you want)
-      kafka-topics.sh
-        --bootstrap-server localhost:9092
-        --create
-        --if-not-exists
-        --topic default-topic
-        --partitions 1
-        --replication-factor 1 &&
-      # keep container attached to main Kafka process
-      wait
-      "
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://localhost:9092,CONTROLLER://localhost:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+    command: 
+      - ./kafka-topics.sh 
+      - --bootstrap-server
+      - localhost:9092
+      - --create 
+      - --topic test-topic
 
     volumes:
       - kafka_data:/bitnami/kafka
-
+    depends_on:
+      - itcdc
+    networks:
+      - app-network
 
 volumes:
   pd_data:
