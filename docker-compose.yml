@@ -126,7 +126,7 @@ services:
     volumes:
       - kafka_data:/bitnami/kafka
     depends_on:
-      - itcdc
+      - ticdc
     networks:
       - app-network
 
