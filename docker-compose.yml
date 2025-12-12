@@ -22,8 +22,12 @@ services:
     restart: on-failure
 
   tikv:
-    image: pingcap/tikv::v7.5.1
+    image: pingcap/tikv:v7.5.1
     container_name: tikv
+    ulimits:
+      nofile:
+        soft: 100000
+        hard: 100000
     command:
       - --addr=0.0.0.0:20160
       - --advertise-addr=tikv:20160
