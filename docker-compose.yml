@@ -66,7 +66,7 @@ services:
     volumes:
       - ./init-ticdc.sh:/init-ticdc.sh
       - ./ticdc-data:/data/ticdc
-    command: ["/bin/sh", "/init-ticdc.sh"]
+    entrypoint: ["/bin/sh", "/init-ticdc.sh"]
     depends_on:
       - pd
       - tikv
@@ -107,7 +107,7 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://localhost:29092,CONTROLLER://localhost:9093
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://localhost:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
@@ -127,7 +127,7 @@ services:
   kafka-init:
     image: apache/kafka:latest
     container_name: kafka_init
-    entrypoint: [ '/bin/sh', '-c' ]
+    entrypoint: ["/bin/sh", "-c"]
     command: |
       "
       # blocks until kafka is reachable
