@@ -129,6 +129,7 @@ services:
 volumes:
   pd_data:
   tikv_data:
+  ticdc_logs:
   ticdc_data:
   kafka_data:
 
