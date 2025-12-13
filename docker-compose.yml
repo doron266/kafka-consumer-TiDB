@@ -160,8 +160,8 @@ volumes:
   pd_data:
   tikv_data:
   ticdc_logs:
-  ticdc_data_1:
-  kafka_data_1:
+  ticdc_data_2:
+  kafka_data_2:
 
 networks:
   app-network:
