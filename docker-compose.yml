@@ -89,8 +89,7 @@ services:
   
   cdc-init:
     image: pingcap/ticdc:v8.5.2
-    entrypoint:
-      - |
+    command: |
         echo "Waiting for TiCDC to be ready..."
         sleep 45
         echo "Creating changefeed..."
