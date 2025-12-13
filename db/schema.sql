@@ -10,3 +10,9 @@ CREATE TABLE IF NOT EXISTS users (
 );
 INSERT INTO users (username, email, password) VALUES ('admin', 'admin@example.com', 'admin')
 ON DUPLICATE KEY UPDATE password='admin';
+
+
+CREATE TABLE IF NOT EXISTS numbers (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    num INT
+);
