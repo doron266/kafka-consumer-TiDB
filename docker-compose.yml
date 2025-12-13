@@ -87,22 +87,33 @@ services:
   # Initialize CDC changefeed to capture database changes
 
   
-  cdc-init:
+  
+  cdc-task:
     image: pingcap/ticdc:v8.5.2
-    command: |
-        echo "Waiting for TiCDC to be ready..."
-        sleep 45
-        echo "Creating changefeed..."
+    depends_on:
+      kafka:
+        condition: service_healthy
+      ticdc:
+        condition: service_started
+    networks: app-network
+    command:
+      - sh
+      - -lc
+      - |
+        for i in $(seq 1 60); do
+          /cdc cli capture list --server=http://ticdc:8300 >/dev/null 2>&1 && break || sleep 1
+        done
+
         /cdc cli changefeed create \
-          --pd=pd:2379 \
-          --server=ticdc:8300
-          --sink-uri="kafka://kafka:9092/tests?protocol=canal-json" \
-          --changefeed-id="db-monitor" \
-          --config=/dev/stdin <<EOF
-        [filter]
-        rules = ['test.*']
-        EOF
-        echo "Changefeed created successfully"
+          --server=http://ticdc:8300 \
+          --changefeed-id=appdb-cf \
+          --sink-uri="kafka://kafka:9092/tidb_cdc_appdb?protocol=open-protocol" \
+          --no-confirm \
+        || /cdc cli changefeed update \
+          --server=http://ticdc:8300 \
+          --changefeed-id=appdb-cf \
+          --sink-uri="kafka://kafka:9092/tidb_cdc_appdb?protocol=open-protocol" \
+         tail -f /dev/null
     depends_on:
       - ticdc
       - kafka
