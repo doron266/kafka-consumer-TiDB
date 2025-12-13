@@ -91,10 +91,8 @@ services:
   cdc-task:
     image: pingcap/ticdc:v8.5.2
     depends_on:
-      kafka:
-        condition: service_healthy
-      ticdc:
-        condition: service_started
+      - kafka
+      - ticdc
     networks: 
       - app-network
     command:
