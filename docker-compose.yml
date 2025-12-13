@@ -95,7 +95,8 @@ services:
         condition: service_healthy
       ticdc:
         condition: service_started
-    networks: app-network
+    networks: 
+      - app-network
     command:
       - sh
       - -lc
