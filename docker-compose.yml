@@ -112,7 +112,7 @@ services:
           --server=http://ticdc:8300 \
           --changefeed-id=appdb-cf \
           --sink-uri="kafka://kafka:9092/tests?protocol=open-protocol" \
-         tail -f /dev/null
+         || tail -f /dev/null
     
   db-init:
     image: mysql:5.7
