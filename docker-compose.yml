@@ -102,17 +102,11 @@ services:
         for i in $(seq 1 60); do
           /cdc cli capture list --server=http://ticdc:8300 >/dev/null 2>&1 && break || sleep 1
         done
-
-        /cdc cli changefeed create \
+          /cdc cli changefeed create \
           --server=http://ticdc:8300 \
-          --changefeed-id=appdb-cf \
-          --sink-uri="kafka://kafka:9092/tidb_cdc_appdb?protocol=open-protocol" \
-          --no-confirm \
-        || /cdc cli changefeed update \
-          --server=http://ticdc:8300 \
-          --changefeed-id=appdb-cf \
-          --sink-uri="kafka://kafka:9092/tidb_cdc_appdb?protocol=open-protocol" \
-         || tail -f /dev/null
+          --changefeed-id=tests \
+          --sink-uri="kafka://kafka:9092/tests?protocol=open-protocol" \
+          --no-confirm 
     
   db-init:
     image: mysql:5.7
@@ -156,6 +150,9 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+    command: |
+      kafka-topics --bootstrap-server localhost:9092 --create --topic tests --partitions 1 --replication-factor 1
+      kafka-topics --bootstrap-server localhost:9092 --create --topic users --partitions 1 --replication-factor 1
     volumes:
       - kafka_data_1:/var/lib/kafka/data
     networks:
