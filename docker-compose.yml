@@ -65,7 +65,8 @@ services:
       - "8300:8300"
     volumes:
       - ./init-ticdc.sh:/init-ticdc.sh
-      - ./ticdc-data:/data/ticdc
+      - ticdc_logs:/logs
+      - ticdc_data:/data/ticdc
     entrypoint: ["/bin/sh", "/init-ticdc.sh"]
     depends_on:
       - pd
