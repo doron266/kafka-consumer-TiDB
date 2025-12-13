@@ -78,6 +78,29 @@ services:
     restart: on-failure
 
   # Initialize CDC changefeed to capture database changes
+
+  
+  cdc-init:
+    image: pingcap/ticdc:v8.5.2
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Waiting for TiCDC to be ready..."
+        sleep 45
+        echo "Creating changefeed..."
+        /cdc cli changefeed create \
+          --pd=http://pd:2379 \
+          --sink-uri="kafka://kafka:9092/tidb-cdc-events?protocol=canal-json&kafka-version=2.4.0" \
+          --changefeed-id="db-monitor" \
+          --config=/dev/stdin <<EOF
+        [filter]
+        rules = ['test.*']
+        EOF
+        echo "Changefeed created successfully"
+    depends_on:
+      - ticdc
+      - kafka
+      - db-init
   
   db-init:
     image: mysql:5.7
