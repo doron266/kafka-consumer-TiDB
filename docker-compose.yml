@@ -114,11 +114,7 @@ services:
           --changefeed-id=appdb-cf \
           --sink-uri="kafka://kafka:9092/tidb_cdc_appdb?protocol=open-protocol" \
          tail -f /dev/null
-    depends_on:
-      - ticdc
-      - kafka
-      - db-init
-  
+    
   db-init:
     image: mysql:5.7
     container_name: db-init
