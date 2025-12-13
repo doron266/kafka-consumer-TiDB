@@ -122,8 +122,6 @@ services:
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
     volumes:
       - kafka_data:/var/lib/kafka/data
-    depends_on:
-      - ticdc
     networks:
       - app-network
 
