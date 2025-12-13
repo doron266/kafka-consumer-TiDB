@@ -4,6 +4,7 @@ i=1
 
 while true; do
   mysql -h tidb -P 4000 -u root -e "
+    USE test;
     INSERT INTO numbers (num) VALUES ($i);
   "
 
