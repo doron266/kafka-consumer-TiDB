@@ -71,6 +71,7 @@ services:
       - pd
       - tikv
       - tidb
+      - kafka
     networks:
       - app-network
     restart: on-failure
