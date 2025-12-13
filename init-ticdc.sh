@@ -17,7 +17,7 @@ sleep 45
 echo "[TiCDC] Creating changefeed 'db-monitor'..."
 /cdc cli changefeed create \
   --pd=http://pd:2379 \
-  --sink-uri="kafka://kafka:29092/tidb-cdc-events?protocol=canal-json&kafka-version=2.4.0" \
+  --sink-uri="kafka://kafka:9092/tests?protocol=canal-json&kafka-version=2.4.0" \
   --changefeed-id="db-monitor" || \
   echo "[TiCDC] Changefeed may already exist — skipping."
 
