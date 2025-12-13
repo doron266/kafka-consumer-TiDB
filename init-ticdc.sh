@@ -20,7 +20,7 @@ echo "[TiCDC] Creating changefeed 'db-monitor'..."
   --changefeed-id="db-monitor" || \
   /cdc cli changefeed update \
   --sink-uri='kafka://kafka:9092/tests?protocol=canal-json&kafka-version=2.4.0&partition-num=6&max-message-bytes=67108864&replication-factor=1' \
-  --changefeed-id="db-monitor"
+  --changefeed-id="db-monitor" || \
   echo "[TiCDC] eror occured during setup."
 
 echo "[TiCDC] Done. Passing control to TiCDC server..."
