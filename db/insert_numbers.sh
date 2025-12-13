@@ -10,5 +10,5 @@ while true; do
 
   echo "Inserted: $i"
   i=$((i+1))
-  sleep 50
+  sleep 4
 done
