@@ -66,7 +66,7 @@ services:
     volumes:
       - ./init-ticdc.sh:/init-ticdc.sh
       - ticdc_logs:/logs
-      - ticdc_data_1:/data
+      - ticdc_data_2:/data
     command:
       - /cdc
       - server
@@ -105,7 +105,7 @@ services:
           /cdc cli changefeed create \
           --server=http://ticdc:8300 \
           --changefeed-id=tests \
-          --sink-uri="kafka://kafka:9092/tests?protocol=open-protocol" \
+          --sink-uri='kafka://kafka:9092/tests?protocol=open-protocol' \
           --no-confirm 
     
   db-init:
@@ -142,7 +142,7 @@ services:
       KAFKA_PROCESS_ROLES: broker,controller
       
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CREATE_TOPICS: "tests:1:1"
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
@@ -151,7 +151,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
     volumes:
-      - kafka_data_1:/var/lib/kafka/data
+      - kafka_data_2:/var/lib/kafka/data
     networks:
       - app-network
 
