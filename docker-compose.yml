@@ -67,7 +67,14 @@ services:
       - ./init-ticdc.sh:/init-ticdc.sh
       - ticdc_logs:/logs
       - ticdc_data_1:/data
-    entrypoint: ["/bin/sh", "/init-ticdc.sh"]
+    command:
+      - /cdc
+      - server
+      - --pd=http://pd:2379
+      - --addr=0.0.0.0:8300
+      - --advertise-addr=ticdc:8300
+      - --log-file=/logs/ticdc.log
+      - --data-dir=/data/ticdc
     depends_on:
       - pd
       - tikv
@@ -82,15 +89,15 @@ services:
   
   cdc-init:
     image: pingcap/ticdc:v8.5.2
-    entrypoint: ["/bin/sh", "-c"]
-    command:
+    entrypoint:
       - |
         echo "Waiting for TiCDC to be ready..."
         sleep 45
         echo "Creating changefeed..."
         /cdc cli changefeed create \
-          --pd=http://pd:2379 \
-          --sink-uri="kafka://kafka:9092/tidb-cdc-events?protocol=canal-json&kafka-version=2.4.0" \
+          --pd=pd:2379 \
+          --server=ticdc:8300
+          --sink-uri="kafka://kafka:9092/tests?protocol=canal-json" \
           --changefeed-id="db-monitor" \
           --config=/dev/stdin <<EOF
         [filter]
