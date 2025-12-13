@@ -92,8 +92,10 @@ services:
     image: pingcap/ticdc:v8.5.2
     container_name: cdc-task
     depends_on:
-      - kafka
-      - ticdc
+      kafka:
+        condition: service_healthy
+      ticdc:
+        condition: service_started
     networks: 
       - app-network
     command:
@@ -107,7 +109,14 @@ services:
           --server=http://ticdc:8300 \
           --changefeed-id=tests \
           --sink-uri='kafka://kafka:9092/tests?protocol=open-protocol' \
-          --no-confirm 
+          --no-confirm && \
+          cdc cli changefeed create \
+          --server=http://ticdc:8300 \
+          --changefeed-id=users \
+          --sink-uri='kafka://kafka:9092/users?protocol=open-protocol' \
+          --no-confirm ||
+          echo "change feeds probably exist.."
+          
     
   db-init:
     image: mysql:5.7
@@ -151,6 +160,13 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+    healthcheck:
+      test: ["CMD", "/opt/bitnami/kafka/bin/kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: on-failure
+    networks: [appnet]
     volumes:
       - kafka_data_2:/var/lib/kafka/data
     networks:
