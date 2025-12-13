@@ -151,14 +151,8 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
     command:
-      - kafka-topics
-      - --create 
-      - --topic 
-      - tests 
-      - --partitions
-      - 1 
-      - --replication-factor 
-      - 1
+      - | 
+        kafka-topics --bootstrap-server localhost:9092 --create --topic tests --partitions 1 --replication-factor 1
     
     volumes:
       - kafka_data_1:/var/lib/kafka/data
