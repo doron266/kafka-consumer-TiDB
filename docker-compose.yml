@@ -3,7 +3,7 @@ version: '3.8'
 services:
   
   pd:
-    image: pingcap/pd:v7.5.1
+    image: pingcap/pd:v8.5.2
     container_name: pd
     ports:
       - "2379:2379"
@@ -22,7 +22,7 @@ services:
     restart: on-failure
 
   tikv:
-    image: pingcap/tikv:v7.5.1
+    image: pingcap/tikv:v8.5.2
     container_name: tikv
     ulimits:
       nofile:
@@ -42,7 +42,7 @@ services:
     restart: on-failure
 
   tidb:
-    image: pingcap/tidb:v7.5.1
+    image: pingcap/tidb:v8.5.2
     container_name: tidb
     ports:
       - "4000:4000"
@@ -59,7 +59,7 @@ services:
 
   # TiCDC for Change Data Capture
   ticdc:
-    image: pingcap/ticdc:v7.5.1
+    image: pingcap/ticdc:v8.5.2
     container_name: ticdc
     ports:
       - "8300:8300"
