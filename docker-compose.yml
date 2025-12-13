@@ -92,8 +92,7 @@ services:
           sleep 5
         done
         echo "TiDB is ready, initializing database..."
-        mysql -h tidb -P 4000 -u root < /db/schema.sql
-        echo "Database initialized successfully"
+        mysql -h tidb -P 4000 -u root < /db/schema.sql && echo "Database initialized successfully"
     depends_on:
       - tidb
     networks:
@@ -104,23 +103,22 @@ services:
     container_name: kafka
     ports:
       - 9092:9092
-    environment:
+    environment:      
+      KAFKA_KRAFT_MODE: 'true'
+      CLUSTER_ID: '1L6g7nGhU-eAKfL--X25wo'
+
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,CONTROLLER://localhost:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
-      KAFKA_CREATE_TOPICS: "user-events:1:1,tidb-cdc-events:1:1"
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
     volumes:
-      - kafka_data:/kafka
+      - kafka_data:/var/lib/kafka/data
     depends_on:
       - ticdc
     networks:
