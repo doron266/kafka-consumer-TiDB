@@ -90,6 +90,7 @@ services:
   
   cdc-task:
     image: pingcap/ticdc:v8.5.2
+    container_name: cdc-task
     depends_on:
       - kafka
       - ticdc
