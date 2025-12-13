@@ -105,7 +105,7 @@ services:
 
         /cdc cli changefeed create \
           --server=http://ticdc:8300 \
-          --changefeed-id=appdb-cf \
+          --changefeed-id=test \
           --sink-uri="kafka://kafka:9092/tests?protocol=open-protocol" \
           --no-confirm \
         || /cdc cli changefeed update \
