@@ -150,6 +150,7 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+    entrypoint: ["/bin/bash", "-c"]
     command:
       - | 
         kafka-topics --bootstrap-server localhost:9092 --create --topic tests --partitions 1 --replication-factor 1
