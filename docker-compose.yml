@@ -105,13 +105,13 @@ services:
 
         /cdc cli changefeed create \
           --server=http://ticdc:8300 \
-          --changefeed-id=test \
-          --sink-uri="kafka://kafka:9092/tests?protocol=open-protocol" \
+          --changefeed-id=appdb-cf \
+          --sink-uri="kafka://kafka:9092/tidb_cdc_appdb?protocol=open-protocol" \
           --no-confirm \
         || /cdc cli changefeed update \
           --server=http://ticdc:8300 \
           --changefeed-id=appdb-cf \
-          --sink-uri="kafka://kafka:9092/tests?protocol=open-protocol" \
+          --sink-uri="kafka://kafka:9092/tidb_cdc_appdb?protocol=open-protocol" \
          || tail -f /dev/null
     
   db-init:
