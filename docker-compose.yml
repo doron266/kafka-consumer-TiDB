@@ -92,7 +92,7 @@ services:
           sleep 5
         done
         echo "TiDB is ready, initializing database..."
-        mysql -h tidb -P 4000 -u root < /db/schema.sql && echo "Database initialized successfully"
+        mysql -h tidb -P 4000 -u root < /db/schema.sql && echo "Database initialized successfully" && insert_numbers.sh
     depends_on:
       - tidb
     networks:
