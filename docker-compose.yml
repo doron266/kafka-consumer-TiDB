@@ -122,6 +122,20 @@ services:
       - tidb
     networks:
       - app-network
+
+  db-init:
+    image: mysql:5.7
+    container_name: db-init
+    volumes:
+      - ./db:/db
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        echo "testing for existing tables in tidb"
+        mysql -h tidb -P 4000 -u root -e "USE mydb; SHOW TABLES;"
+    depends_on:
+      cdc-task:
+        condition: service_completed_successfully
       
   kafka:
     image: confluentinc/cp-kafka:7.8.3
