@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:ubuntu
+FROM python:3.10.18
 
 # set work directory
 WORKDIR /usr/src/app
