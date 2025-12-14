@@ -1,2 +1,2 @@
 [filter]
-rules = ["mydb.User"]
+rules = ["mydb.api_user"]
