@@ -66,7 +66,7 @@ services:
     volumes:
       - ./init-ticdc.sh:/init-ticdc.sh
       - ticdc_logs:/logs
-      - ticdc_data_2:/data
+      - ticdc_data:/data
     command:
       - /cdc
       - server
@@ -168,7 +168,7 @@ services:
     restart: on-failure
     networks: [appnet]
     volumes:
-      - kafka_data_2:/var/lib/kafka/data
+      - kafka_data:/var/lib/kafka/data
     networks:
       - app-network
       
@@ -189,8 +189,8 @@ volumes:
   pd_data:
   tikv_data:
   ticdc_logs:
-  ticdc_data_2:
-  kafka_data_2:
+  ticdc_data:
+  kafka_data:
 
 networks:
   app-network:
