@@ -170,6 +170,9 @@ services:
       - ./.env.dev
     networks: 
       - app-network
+    depends_on:
+      tidb:
+        condition: service_started
 
 volumes:
   pd_data:
