@@ -173,6 +173,8 @@ services:
     depends_on:
       tidb:
         condition: service_started
+      db-init:
+        condition: service_completed_successfully
 
 volumes:
   pd_data:
