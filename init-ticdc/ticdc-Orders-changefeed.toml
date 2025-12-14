@@ -1,0 +1,12 @@
+#[sink]
+#protocol = "canal-json"
+
+[filter]
+rules = [
+  "mydb.Orders"
+]
+
+ignore-event = [
+  "truncate table",
+  "drop table"
+]
