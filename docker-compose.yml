@@ -133,10 +133,8 @@ services:
       - |
         echo "testing for existing tables in tidb"
         mysql -h tidb -P 4000 -u root -e "USE mydb; SHOW TABLES;"
-    
     networks:
       - app-network
-
     depends_on:
       cdc-task:
         condition: service_completed_successfully
@@ -179,7 +177,7 @@ services:
       dockerfile: Dockerfile
     container_name: web-api
     # Run unit tests and start the server
-    command: sh -c "python3 ./manage.py test && python3 ./manage.py runserver 0.0.0.0:8000 && python3 ./manage.py migrate"
+    command: sh -c "python3 ./manage.py test && python3 ./manage.py migrate && python3 ./manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./app/:/usr/src/app/
     ports:
