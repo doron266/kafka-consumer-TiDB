@@ -1,4 +1,4 @@
 [filter]
 rules = [
-  "mydb.api_orders"
+  "mydb.api_order"
 ]
