@@ -77,7 +77,6 @@ DATABASES = {
         "ENGINE": environ.get("SQL_ENGINE", "django.db.backends.mysql"),
         "NAME": environ.get("SQL_DATABASE", BASE_DIR / "db.mysql"),
         "USER": environ.get("SQL_USER", "root"),
-        "PASSWORD": environ.get("SQL_PASSWORD", "password"),
         "HOST": environ.get("SQL_HOST", "tidb"),
         "PORT": environ.get("SQL_PORT", "4000"),
     }
