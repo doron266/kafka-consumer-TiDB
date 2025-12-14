@@ -100,7 +100,7 @@ services:
       - app-network
     entrypoint: ['./init-ticdc.sh']
     volumes:
-      - ./init-ticdc.sh:./init-ticdc.sh
+      - ./init-ticdc.sh:/init-ticdc.sh
           
   db-init:
     image: mysql:5.7
