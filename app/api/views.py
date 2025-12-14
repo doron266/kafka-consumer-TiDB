@@ -7,7 +7,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .models import User, Order, Product
-from .serializers import UserSerializer, OrderSerializer, ProductSerializer
+from .serializers import UserSerializer, OrderSerializer
 from django.shortcuts import get_object_or_404
 
 
