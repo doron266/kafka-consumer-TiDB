@@ -163,9 +163,9 @@ services:
     # Run unit tests and start the server
     entrypoint: ["/bin/sh", "-c"]
     command: |
-      python manage.py test &&
-      python manage.py migrate &&
-      python manage.py runserver 0.0.0.0:8000
+      python ./manage.py test &&
+      python ./manage.py migrate &&
+      python ./manage.py runserver 0.0.0.0:8000
     volumes:
       - ./app/:/usr/src/app/
     ports:
