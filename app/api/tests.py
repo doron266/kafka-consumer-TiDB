@@ -129,6 +129,8 @@ class UserTestCase(APITestCase):
         # Create multiple users
         self.create_test_user()
         self.create_test_user("Jane Doe", "jane@example.com", 21)
+        for i in range(1, 50):
+            print(i, end=' ')
         self.create_test_user("James Doe", "james@example.com", 64)
 
         response = self.client.get("/api/users")
