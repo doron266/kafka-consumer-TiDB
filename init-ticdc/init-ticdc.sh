@@ -16,8 +16,8 @@ echo "[cdc-task] Creating changefeeds [tests, users, orders]..."
   --sink-uri='kafka://kafka:9092/orders?protocol=open-protocol' \
   --changefeed-id="orders"\
   --config /init-ticdc/ticdc-Orders-changefeed.toml || echo "[cdc-task] [changefeed: orders, probably exist]"
-  echo "[TiCDC-task] [exit code: 0, massage: changefeeds created succesfully]" || echo "exit code 1"
+  
   
 
 echo "[TiCDC] Done. Passing control to TiCDC server..."
-wait "$SERVER_PID"
+
