@@ -9,7 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # install psycopg2 dependencies
-RUN apt-get update && apt-get install python3-dev default-libmysqlclient-dev build-essential pkg-config
+RUN apt-get update && apt-get install python3-dev default-libmysqlclient-dev build-essential pkg-config -y
 # install dependencies
 RUN pip install --upgrade pip
 COPY requirements.txt .
