@@ -26,8 +26,8 @@ services:
     container_name: tikv
     ulimits:
       nofile:
-        soft: 100000
-        hard: 100000
+        soft: 1048576
+        hard: 1048576
     command:
       - --addr=0.0.0.0:20160
       - --advertise-addr=tikv:20160
