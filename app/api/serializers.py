@@ -16,8 +16,4 @@ class OrderSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
 
-class ProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Product
-        fields = ["id", "name", "price"]
-        read_only_fields = ["id"]
+
