@@ -1,26 +1,184 @@
 version: '3.8'
 
 services:
-  web:
-    build: ./app
-    # Run unit tests and start the server
-    command: sh -c "python manage.py test && python manage.py runserver 0.0.0.0:8000"
-    volumes:
-      - ./app/:/usr/src/app/
+  
+  pd:
+    image: pingcap/pd:v8.5.2
+    container_name: pd
     ports:
-      - 8000:8000
-    env_file:
-      - ./.env.dev
-    depends_on:
-      - db
-  db:
-    image: postgres:13.0-alpine
+      - "2379:2379"
+    command:
+      - --name=pd
+      - --client-urls=http://0.0.0.0:2379
+      - --peer-urls=http://0.0.0.0:2380
+      - --advertise-client-urls=http://pd:2379
+      - --advertise-peer-urls=http://pd:2380
+      - --initial-cluster=pd=http://pd:2380
+      - --data-dir=/data/pd
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=hello_django
-      - POSTGRES_PASSWORD=hello_django
-      - POSTGRES_DB=hello_django_dev
+      - pd_data:/data
+    networks:
+      - app-network
+    restart: on-failure
+
+  tikv:
+    image: pingcap/tikv:v8.5.2
+    container_name: tikv
+    ulimits:
+      nofile:
+        soft: 100000
+        hard: 100000
+    command:
+      - --addr=0.0.0.0:20160
+      - --advertise-addr=tikv:20160
+      - --pd=pd:2379
+      - --data-dir=/data/tikv
+    volumes:
+      - tikv_data:/data
+    depends_on:
+      - pd
+    networks:
+      - app-network
+    restart: on-failure
+
+  tidb:
+    image: pingcap/tidb:v8.5.2
+    container_name: tidb
+    ports:
+      - "4000:4000"
+      - "10080:10080"
+    command:
+      - --store=tikv
+      - --path=pd:2379
+      - --advertise-address=tidb
+    depends_on:
+      - tikv
+    networks:
+      - app-network
+    restart: on-failure
+
+  # TiCDC for Change Data Capture
+  ticdc:
+    image: pingcap/ticdc:v8.5.2
+    container_name: ticdc
+    ports:
+      - "8300:8300"
+    volumes:
+      - ./init-ticdc.sh:/init-ticdc.sh
+      - ticdc_logs:/logs
+      - ticdc_data_2:/data
+    command:
+      - /cdc
+      - server
+      - --pd=http://pd:2379
+      - --addr=0.0.0.0:8300
+      - --advertise-addr=ticdc:8300
+      - --log-file=/logs/ticdc.log
+      - --data-dir=/data/ticdc
+    depends_on:
+      - pd
+      - tikv
+      - tidb
+      - kafka
+    networks:
+      - app-network
+    restart: on-failure
+
+  # Initialize CDC changefeed to capture database changes
+
+  
+  
+  cdc-task:
+    image: pingcap/ticdc:v8.5.2
+    container_name: cdc-task
+    depends_on:
+      kafka:
+        condition: service_healthy
+      ticdc:
+        condition: service_started
+    networks: 
+      - app-network
+    command:
+      - sh
+      - -lc
+      - |
+        for i in $(seq 1 60); do
+          /cdc cli capture list --server=http://ticdc:8300 >/dev/null 2>&1 && break || sleep 1
+        done
+          /cdc cli changefeed create \
+          --server=http://ticdc:8300 \
+          --changefeed-id=tests \
+          --sink-uri='kafka://kafka:9092/tests?protocol=open-protocol' \
+          --no-confirm && \
+          cdc cli changefeed create \
+          --server=http://ticdc:8300 \
+          --changefeed-id=users \
+          --sink-uri='kafka://kafka:9092/users?protocol=open-protocol' \
+          --no-confirm ||
+          echo "change feeds probably exist.."
+          
+    
+  db-init:
+    image: mysql:5.7
+    container_name: db-init
+    volumes:
+      - ./db:/db
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        echo "Waiting for TiDB to be ready..."
+        sleep 30
+        until mysql -h tidb -P 4000 -u root -e "SELECT 1" 2>/dev/null; do
+          echo "TiDB not ready, waiting..."
+          sleep 5
+        done
+        echo "TiDB is ready, initializing database..."
+        mysql -h tidb -P 4000 -u root < /db/schema.sql && echo "Database initialized successfully" && /db/insert_numbers.sh
+    depends_on:
+      - tidb
+    networks:
+      - app-network
+      
+  kafka:
+    image: confluentinc/cp-kafka:7.8.3
+    container_name: kafka
+    ports:
+      - 9092:9092
+    environment:      
+      KAFKA_KRAFT_MODE: 'true'
+      CLUSTER_ID: '1L6g7nGhU-eAKfL--X25wo'
+
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CREATE_TOPICS: "tests:1:1"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+    healthcheck:
+      test: ["CMD", "/opt/bitnami/kafka/bin/kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: on-failure
+    networks: [appnet]
+    volumes:
+      - kafka_data_2:/var/lib/kafka/data
+    networks:
+      - app-network
 
 volumes:
-  postgres_data:
+  pd_data:
+  tikv_data:
+  ticdc_logs:
+  ticdc_data_2:
+  kafka_data_2:
+
+networks:
+  app-network:
+    driver: bridge
