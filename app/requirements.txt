@@ -2,3 +2,4 @@ Django~=4.2
 djangorestframework~=3.14.0
 drf_yasg~=1.21.4
 pymysql==1.1.0
+mysqlclient>=2.2.0
