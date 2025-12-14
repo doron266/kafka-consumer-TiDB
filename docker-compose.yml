@@ -98,9 +98,9 @@ services:
         condition: service_started
     networks: 
       - app-network
-    entrypoint: ['./init-ticdc.sh']
+    entrypoint: ['/init-ticdc/init-ticdc.sh']
     volumes:
-      - ./init-ticdc.sh:/init-ticdc.sh
+      - ./init-ticdc:/init-ticdc
           
   db-init:
     image: mysql:5.7
