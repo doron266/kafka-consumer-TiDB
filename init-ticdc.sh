@@ -1,27 +1,28 @@
 #!/bin/sh
 set -e
 
-echo "[TiCDC] Starting server..."
-/cdc server \
-  --pd=http://pd:2379 \
-  --addr=0.0.0.0:8300 \
-  --advertise-addr=ticdc:8300 \
-  --log-file="" \
-  --log-level=info \
-  --data-dir=/data/ticdc &
-SERVER_PID=$!
 
 echo "[TiCDC] Waiting for TiCDC to be ready..."
 sleep 45
 
 echo "[TiCDC] Creating changefeed 'db-monitor'..."
 /cdc cli changefeed create \
-  --sink-uri='kafk://kafka:9092/tests?protocol=canal-json&max-message-bytes=67108864&replication-factor=1' \
-  --changefeed-id="db-monitor" || \
-  /cdc cli changefeed update \
-  --sink-uri='kafka://kafka:9092/tests?protocol=canal-json&max-message-bytes=67108864&replication-factor=1' \
-  --changefeed-id="db-monitor" || \
-  echo "[TiCDC] eror occured during setup."
+  --server=http://ticdc:8300 \
+  --sink-uri='kafka://kafka:9092/tests?protocol=canal-jason' \
+  --changefeed-id="tests"
+  --filter='mydb.tests' &&\
+  /cdc cli changefeed create \
+  --server=http://ticdc:8300 \
+  --sink-uri='kafka://kafka:9092/orders?protocol=canal-jason' \
+  --changefeed-id="orders"
+  --filter='mydb.orders' &&\
+  /cdc cli changefeed create \
+    --server=http://ticdc:8300 \
+  --sink-uri='kafka://kafka:9092/users?protocol=canal-jason' \
+  --changefeed-id="users"
+  --filter='mydb.users' && \
+  echo "[TiCDC-task] [exit code: 0, massage: changefeeds created succesfully]" || ech "exit code 1"
+  
 
 echo "[TiCDC] Done. Passing control to TiCDC server..."
 wait "$SERVER_PID"
