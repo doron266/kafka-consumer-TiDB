@@ -133,6 +133,10 @@ services:
       - |
         echo "testing for existing tables in tidb"
         mysql -h tidb -P 4000 -u root -e "USE mydb; SHOW TABLES;"
+    
+    networks:
+      - app-network
+
     depends_on:
       cdc-task:
         condition: service_completed_successfully
