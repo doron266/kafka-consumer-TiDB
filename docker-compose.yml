@@ -158,6 +158,7 @@ services:
   web-api:
     build: 
       context: ./app
+      target: Dockerfile
     container_name: web-api
     # Run unit tests and start the server
     command: sh -c "python manage.py test && python manage.py runserver 0.0.0.0:8000 && python manage.py migrate"
