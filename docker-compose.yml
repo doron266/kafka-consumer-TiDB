@@ -123,9 +123,9 @@ services:
     networks:
       - app-network
 
-  db-init:
+  tables-init:
     image: mysql:5.7
-    container_name: db-init
+    container_name: tables-init
     volumes:
       - ./db:/db
     entrypoint: ["/bin/bash", "-c"]
