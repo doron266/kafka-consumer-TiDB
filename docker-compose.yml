@@ -192,6 +192,14 @@ services:
       db-init:
         condition: service_completed_successfully
 
+  consumer:
+    build: ./consumer
+    environment:
+      - KAFKA_BROKERS=kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
 volumes:
   pd_data:
   tikv_data:
