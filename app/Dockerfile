@@ -10,7 +10,7 @@ ENV PYTHONUNBUFFERED 1
 
 # install psycopg2 dependencies
 RUN apk update \
-    && apk add default-libmysqlclient-dev gcc python3-dev musl-dev pkg-config build-essential
+    && apk add default-libmysqlclient-dev gcc python3-dev musl-dev pkg-config
 
 # install dependencies
 RUN pip install --upgrade pip
