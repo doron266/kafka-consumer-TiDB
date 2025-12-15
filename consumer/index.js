@@ -1,4 +1,5 @@
 const { Kafka } = require('kafkajs');
+const log4js = require('log4js');
 
 /**
  * Kafka client
