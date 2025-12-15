@@ -61,7 +61,7 @@ const run = async () => {
     }
 
     await consumer.subscribe({ topic: 'users', fromBeginning: true });
-    await consumer.subscribe({ topic: 'orders', fromBeginning: true });
+    await consumer.subscribe({ topic: 'logins', fromBeginning: true });
 
     console.log('Subscribed to topics: users, orders');
 
