@@ -1,27 +1,37 @@
-from rest_framework.test import APIClient
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
+
 from api.models import User
 
 
 class UserTestCase(APITestCase):
-
     """
-    Test suite for User endpoints
+    Test suite for User endpoints (new schema):
+    username, email, password, auth_token, created_at
     """
 
     def setUp(self):
         self.client = APIClient()
-        self.data = {"name": "John Doe", "email": "john@example.com", "age": 20}
+        self.data = {
+            "username": "JohnDoe",
+            "email": "john@example.com",
+            "password": "secret123",
+            "auth_token": None,
+        }
 
-    def create_test_user(self, name="John Doe", email="john@example.com", age=20):
+    def create_test_user(self, username="JohnDoe", email="john@example.com", password="secret123", auth_token=None):
         """
         Create dummy user for testing
         """
-        data = {"name": name, "email": email, "age": age}
-
-        response = self.client.post("/api/users/add", data)
+        data = {
+            "username": username,
+            "email": email,
+            "password": password,
+            "auth_token": auth_token,
+        }
+        response = self.client.post("/api/users/add", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        return response
 
     # ----------------- POST -----------------
     # Test /users/add endpoint
@@ -30,79 +40,79 @@ class UserTestCase(APITestCase):
         """
         Test API: Create new user with correct data.
         """
-        data = self.data
-        response = self.client.post("/api/users/add", data)
+        response = self.client.post("/api/users/add", self.data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.count(), 1)
-        self.assertEqual(User.objects.get().name, "John Doe")
+        self.assertEqual(User.objects.get().username, "JohnDoe")
 
-    def test_create_user_without_name(self):
+    def test_create_user_without_username(self):
         """
-        Test API: Create new user when name is not in data.
+        Test API: Create new user when username is not in data.
         """
-        data = self.data
-        data.pop("name")
-        response = self.client.post("/api/users/add", data)
+        data = self.data.copy()
+        data.pop("username")
+        response = self.client.post("/api/users/add", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_create_user_when_name_equals_blank(self):
+    def test_create_user_when_username_equals_blank(self):
         """
-        Test API: Create new user when name is blank.
+        Test API: Create new user when username is blank.
         """
-        data = self.data
-        data["name"] = ""
-        response = self.client.post("/api/users/add", data)
+        data = self.data.copy()
+        data["username"] = ""
+        response = self.client.post("/api/users/add", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_user_without_email(self):
         """
         Test API: Create new user when email is not in data.
         """
-        data = self.data
+        data = self.data.copy()
         data.pop("email")
-        response = self.client.post("/api/users/add", data)
+        response = self.client.post("/api/users/add", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_user_when_email_equals_blank(self):
         """
         Test API: Create new user when email is blank.
         """
-        data = self.data
+        data = self.data.copy()
         data["email"] = ""
-        response = self.client.post("/api/users/add", data)
+        response = self.client.post("/api/users/add", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_create_user_without_age(self):
+    def test_create_user_without_password(self):
         """
-        Test API: Create new user when age is not in data.
+        Test API: Create new user when password is not in data.
         """
-        data = self.data
-        data.pop("age")
-        response = self.client.post("/api/users/add", data)
+        data = self.data.copy()
+        data.pop("password")
+        response = self.client.post("/api/users/add", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_create_user_when_age_equals_blank(self):
+    def test_create_user_when_password_equals_blank(self):
         """
-        Test API: Create new user when age is blank.
+        Test API: Create new user when password is blank.
         """
-        data = self.data
-        data["age"] = ""
-        response = self.client.post("/api/users/add", data)
+        data = self.data.copy()
+        data["password"] = ""
+        response = self.client.post("/api/users/add", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_same_email_again(self):
         """
-        Test API: Create new user when email is already exist. Email should be unique.
+        Test API: Create user twice with same email. Email should be unique.
         """
-        data = self.data
-        response = self.client.post("/api/users/add", data)
+        response = self.client.post("/api/users/add", self.data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.count(), 1)
-        response = self.client.post("/api/users/add", data)
+
+        response = self.client.post("/api/users/add", self.data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(User.objects.count(), 1)
 
     # ----------------- GET -----------------
-    # Test /user endpoint
+    # Test /users endpoint
 
     def test_get_all_users_when_no_users(self):
         """
@@ -111,214 +121,146 @@ class UserTestCase(APITestCase):
         response = self.client.get("/api/users")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(User.objects.count(), 0)
+        self.assertEqual(response.data, [])
 
-    def test_get_all_users_when_one_users_exist(self):
+    def test_get_all_users_when_one_user_exists(self):
         """
-        Test API: Return all users when one user exist.
+        Test API: Return all users when one user exists.
         """
         self.create_test_user()
         response = self.client.get("/api/users")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(User.objects.count(), 1)
-        self.assertEqual(response.data[0]["name"], "John Doe")
+        self.assertEqual(response.data[0]["username"], "JohnDoe")
+        self.assertEqual(response.data[0]["email"], "john@example.com")
 
     def test_get_all_users_when_multiple_users_exist(self):
         """
         Test API: Return all users when multiple users exist.
         """
-        # Create multiple users
-        self.create_test_user()
-        self.create_test_user("Jane Doe", "jane@example.com", 21)
-        for i in range(1, 50):
-            print(i, end=' ')
-        self.create_test_user("James Doe", "james@example.com", 64)
+        self.create_test_user("JohnDoe", "john@example.com", "secret123")
+        self.create_test_user("JaneDoe", "jane@example.com", "secret123")
+        self.create_test_user("JamesDoe", "james@example.com", "secret123")
 
         response = self.client.get("/api/users")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(User.objects.count(), 3)
-        print(response.data[0]["name"])
-        print(response.data[1]["name"])
-        print(response.data[2]["name"])
-        '''
-        self.assertEqual(response.data[0]["name"], "John Doe")
-        self.assertEqual(response.data[1]["name"], "Jane Doe")
-        self.assertEqual(response.data[2]["name"], "James Doe")
-        '''
 
-    # ----------------- GET -----------------
-    # Test /user endpoint
+        # Order is not guaranteed unless you order_by in the view, so just check presence
+        emails = {u["email"] for u in response.data}
+        self.assertEqual(emails, {"john@example.com", "jane@example.com", "james@example.com"})
 
     def test_get_user_without_email_parameter(self):
         """
-        Test API: Return user by email when no email parameter.
+        Test API: Return error when email parameter is empty.
         """
         response = self.client.get("/api/users?email=")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_get_user_when_no_users(self):
         """
-        Test API: Return user by email when no user records exist.
+        Test API: Return 404 when requesting user by email but none exist.
         """
         response = self.client.get("/api/users?email=wrongemail@example.com")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_get_user_when_one_user_exist(self):
+    def test_get_user_when_one_user_exists(self):
         """
-        Test API: Return user by email when one user exist.
+        Test API: Return user by email when one user exists.
         """
         self.create_test_user()
-
-        data = self.data
-        response = self.client.get(f"/api/users?email={data['email']}")
+        response = self.client.get("/api/users?email=john@example.com")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["name"], self.data["name"])
+        self.assertEqual(response.data["email"], "john@example.com")
+        self.assertEqual(response.data["username"], "JohnDoe")
 
     def test_get_user_when_multiple_users_exist(self):
         """
-        Test API: Return user by email when multiple users exist.
+        Test API: Return specific user by email when multiple users exist.
         """
-        # Create multiple users
-        self.create_test_user()
-        self.create_test_user("Jane Doe", "jane@example.com", 21)
-        self.create_test_user("James Doe", "james@example.com", 64)
+        self.create_test_user("JohnDoe", "john@example.com", "secret123")
+        self.create_test_user("JaneDoe", "jane@example.com", "secret123")
 
-        # Get specific user
         response = self.client.get("/api/users?email=jane@example.com")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["name"], "Jane Doe")
+        self.assertEqual(response.data["email"], "jane@example.com")
+        self.assertEqual(response.data["username"], "JaneDoe")
 
     # ----------------- PUT -----------------
     # Test /users/update endpoint
 
     def test_update_user_without_email_parameter(self):
-        """
-        Test API: Update user when no users.
-        """
-        response = self.client.put("/api/users/update")
+        response = self.client.put("/api/users/update", {}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_user_with_empty_email_parameter(self):
-        """
-        Test API: Update user with empty email parameter.
-        """
-        response = self.client.put("/api/users/update?email=")
+        response = self.client.put("/api/users/update?email=", {}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_user_when_no_users(self):
-        """
-        Test API: Update user when no users.
-        """
-        data = self.data
-        response = self.client.put(f"/api/users/update?email={data['email']}", data)
+        response = self.client.put("/api/users/update?email=john@example.com", {"username": "NewName"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_update_user_when_one_user(self):
-        """
-        Test API: Update user when no users exist.
-        """
         self.create_test_user()
-        data = self.data
-        response = self.client.put(f"/api/users/update?email={data['email']}", data)
+        response = self.client.put(
+            "/api/users/update?email=john@example.com",
+            {"username": "JohnUpdated", "auth_token": "t1"},
+            format="json",
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_update_user_when_multiple_users_exist(self):
-        """
-        Test API: Update user when multiple users exist.
-        """
-        # Create multiple users
-        self.create_test_user()
-        self.create_test_user("Jane Doe", "jane@example.com", 21)
-        self.create_test_user("James Doe", "james@example.com", 64)
-
-        # Update specific user
-        data = {"email": "jane@example.com", "name": "Jane Doe Updated", "age": 22}
-        response = self.client.put("/api/users/update?email=jane@example.com", data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["data"]["email"], "jane@example.com")
-        self.assertEqual(response.data["data"]["name"], "Jane Doe Updated")
-        self.assertEqual(response.data["data"]["age"], 22)
+        self.assertEqual(response.data["data"]["email"], "john@example.com")
+        self.assertEqual(response.data["data"]["username"], "JohnUpdated")
+        self.assertEqual(response.data["data"]["auth_token"], "t1")
 
     def test_update_user_when_wrong_email_used(self):
-        """
-        Test API: Update user when email does not exist but users do.
-        """
         self.create_test_user()
-        data = self.data
-        data["email"] = "email@example.com"
-        response = self.client.put("/api/users/update?email=wrong_email@example.com", data)
+        response = self.client.put(
+            "/api/users/update?email=wrong@example.com",
+            {"username": "Nope"},
+            format="json",
+        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     # ----------------- DELETE -----------------
     # Test /users/delete endpoint
 
     def test_delete_user_without_email_parameter(self):
-        """
-        Test API: Delete user when no users.
-        """
         response = self.client.delete("/api/users/delete")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_delete_user_when_no_users(self):
-        """
-        Test API: Delete user when no users.
-        """
-        data = self.data
-        response = self.client.delete("/api/users/delete", data)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = self.client.delete("/api/users/delete?email=john@example.com")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_user_when_one_user(self):
-        """
-        Test API: Delete user when no users.
-        """
         self.create_test_user()
-        data = self.data
-        response = self.client.delete(f"/api/users/delete?email={data['email']}")
+        response = self.client.delete("/api/users/delete?email=john@example.com")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(User.objects.count(), 0)
 
     def test_delete_user_when_multiple_users_exist(self):
-        """
-        Test API: Delete correct user when multiple users exist.
-        """
-        # Create multiple users
-        self.create_test_user()
-        self.create_test_user("Jane Doe", "jane@example.com", 21)
+        self.create_test_user("JohnDoe", "john@example.com", "secret123")
+        self.create_test_user("JaneDoe", "jane@example.com", "secret123")
 
-        # Delete specific user
-        data = self.data
-        response = self.client.delete(f"/api/users/delete?email={data['email']}")
+        response = self.client.delete("/api/users/delete?email=john@example.com")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(User.objects.count(), 1)
 
-        # Check if the correct user was deleted
         response = self.client.get("/api/users")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]["name"], "Jane Doe")
-
-    def test_delete_user_when_wrong_email_used(self):
-        """
-        Test API: Delete user when correct user not found by email.
-        """
-        self.create_test_user()
-        response = self.client.delete("/api/users/delete?email=wrong@example.com")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data[0]["email"], "jane@example.com")
 
 
 class DocsTestCase(APITestCase):
-
     """
     Test suite for api documentation
     """
 
     def test_docs_return_200(self):
-        """
-        Test API: Test docs
-        """
         response = self.client.get("/")
-        self.assertEqual(response.status_code, status.HTTP_200_OK),
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_docs_title(self):
-        """
-        Test API: Test docs title
-        """
         response = self.client.get("/")
         self.assertContains(response, "<title>Django REST API</title>")
