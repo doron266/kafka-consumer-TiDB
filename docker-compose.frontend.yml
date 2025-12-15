@@ -131,8 +131,15 @@ services:
     entrypoint: ["/bin/bash", "-c"]
     command:
       - |
-        echo "testing for existing tables in tidb"
-        mysql -h tidb -P 4000 -u root -e "USE mydb; SHOW TABLES;"
+        echo "Checking for existing tables in TiDB every 20 seconds..."
+        while true; do
+          echo "[$(date)] Checking tables in mydb..."
+          mysql -h tidb -P 4000 -u root -e "USE mydb; SHOW TABLES;" \
+            && echo "[$(date)] Tables check succeeded" \
+            || echo "[$(date)] Failed to connect or query TiDB"
+        
+          sleep 20
+        done
     networks:
       - app-network
     depends_on:
