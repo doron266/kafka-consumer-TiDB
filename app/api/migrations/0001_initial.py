@@ -28,9 +28,7 @@ class Migration(migrations.Migration):
                 ("password", models.CharField(max_length=255)),
                 ("auth_token", models.CharField(max_length=255, null=True, blank=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
-            ],
-            options={
-                "db_table": "users",
-            },
+            ]
+            
         ),
     ]
