@@ -16,11 +16,19 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.UUIDField(default=uuid.uuid4, primary_key=True, serialize=False),
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
                 ),
-                ("name", models.CharField(max_length=200)),
-                ("email", models.EmailField(max_length=200, unique=True)),
-                ("age", models.IntegerField()),
-            ],
+                ("username", models.CharField(max_length=255)),
+                ("email", models.EmailField(max_length=255, unique=True)),
+                ("password", models.CharField(max_length=255)),
+                ("auth_token", models.CharField(max_length=255, null=True, blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+            ]
+            
         ),
     ]

@@ -61,9 +61,9 @@ const run = async () => {
     }
 
     await consumer.subscribe({ topic: 'users', fromBeginning: true });
-    await consumer.subscribe({ topic: 'orders', fromBeginning: true });
+    await consumer.subscribe({ topic: 'logins', fromBeginning: true });
 
-    console.log('Subscribed to topics: users, orders');
+    console.log('Subscribed to topics: users, logins');
 
     await consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
@@ -134,7 +134,7 @@ const run = async () => {
                 }));
             }
 
-            if (topic === 'orders') {
+            if (topic === 'logins') {
                 console.log(JSON.stringify({
                     timestamp: new Date().toISOString(),
                     source: 'ticdc',
