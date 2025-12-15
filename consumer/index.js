@@ -60,8 +60,8 @@ const run = async () => {
         process.exit(1);
     }
 
-    await consumer.assign({ topic: 'users', fromBeginning: true });
-    await consumer.assign({ topic: 'orders', fromBeginning: true });
+    await consumer.subscribe({ topic: 'users', fromBeginning: true });
+    await consumer.subscribe({ topic: 'orders', fromBeginning: true });
 
     console.log('Subscribed to topics: users, orders');
 
