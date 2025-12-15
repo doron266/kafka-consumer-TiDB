@@ -72,14 +72,7 @@ const run = async () => {
              * 1️⃣ Empty / tombstone / binary-only messages
              */
             if (isEmptyBuffer(message.value)) {
-                console.log(JSON.stringify({
-                    timestamp: new Date().toISOString(),
-                    topic,
-                    partition,
-                    offset: message.offset,
-                    skipped: true,
-                    reason: 'EMPTY_OR_TOMBSTONE'
-                }));
+                
                 return;
             }
 
