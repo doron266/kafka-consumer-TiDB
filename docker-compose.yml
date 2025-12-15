@@ -194,6 +194,7 @@ services:
 
   consumer:
     build: ./consumer
+    container_name: kafkka_consumer
     environment:
       - KAFKA_BROKERS=kafka:9092
     depends_on:
