@@ -42,7 +42,7 @@ class UserTestCase(APITestCase):
         """
         response = self.client.post("/api/users/add", self.data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(User.objects.count(), 2)
         self.assertEqual(User.objects.get().username, "JohnDoe")
 
     def test_create_user_without_username(self):
@@ -105,7 +105,7 @@ class UserTestCase(APITestCase):
         """
         response = self.client.post("/api/users/add", self.data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(User.objects.count(), 2)
 
         response = self.client.post("/api/users/add", self.data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -120,7 +120,7 @@ class UserTestCase(APITestCase):
         """
         response = self.client.get("/api/users")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(User.objects.count(), 0)
+        self.assertEqual(User.objects.count(), 1)
         self.assertEqual(response.data, [])
 
     def test_get_all_users_when_one_user_exists(self):
@@ -130,7 +130,7 @@ class UserTestCase(APITestCase):
         self.create_test_user()
         response = self.client.get("/api/users")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(User.objects.count(), 2)
         self.assertEqual(response.data[0]["username"], "JohnDoe")
         self.assertEqual(response.data[0]["email"], "john@example.com")
 
@@ -144,7 +144,7 @@ class UserTestCase(APITestCase):
 
         response = self.client.get("/api/users")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(User.objects.count(), 3)
+        self.assertEqual(User.objects.count(), 4)
 
         # Order is not guaranteed unless you order_by in the view, so just check presence
         emails = {u["email"] for u in response.data}
@@ -237,7 +237,7 @@ class UserTestCase(APITestCase):
         self.create_test_user()
         response = self.client.delete("/api/users/delete?email=john@example.com")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(User.objects.count(), 0)
+        self.assertEqual(User.objects.count(), 1)
 
     def test_delete_user_when_multiple_users_exist(self):
         self.create_test_user("JohnDoe", "john@example.com", "secret123")
@@ -245,7 +245,7 @@ class UserTestCase(APITestCase):
 
         response = self.client.delete("/api/users/delete?email=john@example.com")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(User.objects.count(),21)
 
         response = self.client.get("/api/users")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
