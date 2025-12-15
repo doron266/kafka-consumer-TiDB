@@ -3,6 +3,10 @@
 This project was created as part of a **technical assignment for the Helfy hiring process**.  
 It demonstrates a modern backend architecture with a REST API, distributed database, and event streaming.
 
+**importent notes:** 1. swagger runs on localhost:8000, for api tests. 2. login window on localhost:8080 3. this project ment for local runs and development, for remote runs, please add first your remote ip address for allowed host it the api settings.
+
+**i've sent you a definition of done in the email with the git repo link**
+
 ---
 
 ## 🚀 Overview
