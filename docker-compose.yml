@@ -199,6 +199,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+    networks:
+      - app-network
 
 volumes:
   pd_data:
