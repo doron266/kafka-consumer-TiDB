@@ -1,19 +1,28 @@
 from rest_framework import serializers
-from .models import User, Order, Product
+from .models import User, Login
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["name", "email", "age"]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "username",
+            "email",
+            "password",
+            "auth_token",
+            "created_at",
+        ]
+        read_only_fields = ["id", "created_at"]
 
 
-class OrderSerializer(serializers.ModelSerializer):
+class LoginSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Order
-        fields = ["id", "user", "phone_number", "email", "products", "price"]
-        read_only_fields = ["id"]
-
-
-
+        model = Login
+        fields = [
+            "id",
+            "username",
+            "email",
+            "created_at",
+        ]
+        read_only_fields = ["id", "created_at"]
