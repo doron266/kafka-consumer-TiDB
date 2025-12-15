@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                         serialize=False,
                     ),
                 ),
-                ("user", models.CharField(max_length=200)),
+                ("username", models.CharField(max_length=200)),
                 ("email", models.EmailField(max_length=200)),
                 ("created_at", models.DateTimeField(default=timezone.now)),
             ],
