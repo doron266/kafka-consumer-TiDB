@@ -18,21 +18,21 @@ const consumer = kafka.consumer({
  */
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+const isEmptyBuffer = (buf) => {
+    if (!buf || buf.length === 0) return true;
+    // Buffer full of null bytes
+    return buf.every(byte => byte === 0);
+};
+
 const extractValues = (row) =>
     Object.fromEntries(
         Object.entries(row).map(([key, meta]) => [key, meta?.v])
     );
 
 const parseTiCDCMessage = (parsed) => {
-    if (parsed.c) {
-        return { operation: 'INSERT', data: extractValues(parsed.c) };
-    }
-    if (parsed.u) {
-        return { operation: 'UPDATE', data: extractValues(parsed.u) };
-    }
-    if (parsed.d) {
-        return { operation: 'DELETE', data: extractValues(parsed.d) };
-    }
+    if (parsed.c) return { operation: 'INSERT', data: extractValues(parsed.c) };
+    if (parsed.u) return { operation: 'UPDATE', data: extractValues(parsed.u) };
+    if (parsed.d) return { operation: 'DELETE', data: extractValues(parsed.d) };
     return { operation: 'UNKNOWN', data: parsed };
 };
 
@@ -42,84 +42,113 @@ const parseTiCDCMessage = (parsed) => {
 const run = async () => {
     console.log('Starting CDC Consumer...');
 
-    let connected = false;
     let retries = 0;
-
-    while (!connected && retries < 30) {
+    while (retries < 30) {
         try {
             await consumer.connect();
-            connected = true;
             console.log('Connected to Kafka');
-        } catch (err) {
+            break;
+        } catch {
             retries++;
             console.log(`Kafka not ready, retrying in 5s... (${retries}/30)`);
             await sleep(5000);
         }
     }
 
-    if (!connected) {
-        console.error('Failed to connect to Kafka after 30 attempts');
+    if (retries === 30) {
+        console.error('Failed to connect to Kafka');
         process.exit(1);
     }
 
-    await consumer.subscribe({ topic: 'users', fromBeginning: true });
-    await consumer.subscribe({ topic: 'orders', fromBeginning: true });
+    await consumer.assign({ topic: 'users', fromBeginning: true });
+    await consumer.assign({ topic: 'orders', fromBeginning: true });
 
     console.log('Subscribed to topics: users, orders');
 
     await consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
-            const rawValue = message.value?.toString();
-            if (!rawValue) return;
 
-            try {
-                const parsed = JSON.parse(rawValue);
-
-                /**
-                 * USERS CDC
-                 */
-                if (topic === 'users') {
-                    const { operation, data } = parseTiCDCMessage(parsed);
-
-                    const logEntry = {
-                        timestamp: new Date().toISOString(),
-                        source: 'ticdc',
-                        topic,
-                        partition,
-                        offset: message.offset,
-                        table: 'users',
-                        operation,
-                        data
-                    };
-
-                    console.log(JSON.stringify(logEntry));
-                }
-
-                /**
-                 * ORDERS CDC (generic passthrough)
-                 */
-                else if (topic === 'orders') {
-                    const logEntry = {
-                        timestamp: new Date().toISOString(),
-                        source: 'ticdc',
-                        topic,
-                        partition,
-                        offset: message.offset,
-                        data: parsed
-                    };
-
-                    console.log(JSON.stringify(logEntry));
-                }
-
-            } catch (err) {
-                console.error(JSON.stringify({
+            /**
+             * 1️⃣ Empty / tombstone / binary-only messages
+             */
+            if (isEmptyBuffer(message.value)) {
+                console.log(JSON.stringify({
                     timestamp: new Date().toISOString(),
-                    error: 'JSON_PARSE_ERROR',
-                    message: err.message,
                     topic,
                     partition,
                     offset: message.offset,
-                    rawValue: rawValue.slice(0, 200)
+                    skipped: true,
+                    reason: 'EMPTY_OR_TOMBSTONE'
+                }));
+                return;
+            }
+
+            /**
+             * 2️⃣ Convert to string & sanitize
+             */
+            const raw = message.value.toString('utf8');
+            const cleaned = raw.replace(/\0/g, '').trim();
+
+            /**
+             * 3️⃣ Still not JSON? Skip
+             */
+            if (!cleaned.startsWith('{')) {
+                console.log(JSON.stringify({
+                    timestamp: new Date().toISOString(),
+                    topic,
+                    partition,
+                    offset: message.offset,
+                    skipped: true,
+                    reason: 'NON_JSON',
+                    preview: cleaned.slice(0, 100)
+                }));
+                return;
+            }
+
+            /**
+             * 4️⃣ Parse JSON
+             */
+            let parsed;
+            try {
+                parsed = JSON.parse(cleaned);
+            } catch (err) {
+                console.error(JSON.stringify({
+                    timestamp: new Date().toISOString(),
+                    topic,
+                    partition,
+                    offset: message.offset,
+                    error: 'JSON_PARSE_ERROR',
+                    message: err.message
+                }));
+                return;
+            }
+
+            /**
+             * 5️⃣ Topic-specific handling
+             */
+            if (topic === 'users') {
+                const { operation, data } = parseTiCDCMessage(parsed);
+
+                console.log(JSON.stringify({
+                    timestamp: new Date().toISOString(),
+                    source: 'ticdc',
+                    topic,
+                    partition,
+                    offset: message.offset,
+                    table: 'users',
+                    operation,
+                    data
+                }));
+            }
+
+            if (topic === 'orders') {
+                console.log(JSON.stringify({
+                    timestamp: new Date().toISOString(),
+                    source: 'ticdc',
+                    topic,
+                    partition,
+                    offset: message.offset,
+                    data: parsed
                 }));
             }
         }
@@ -127,15 +156,12 @@ const run = async () => {
 };
 
 /**
- * Graceful shutdown (Docker / K8s friendly)
+ * Graceful shutdown
  */
 const shutdown = async (signal) => {
     console.log(`Received ${signal}, shutting down...`);
-    try {
-        await consumer.disconnect();
-    } finally {
-        process.exit(0);
-    }
+    await consumer.disconnect();
+    process.exit(0);
 };
 
 process.on('SIGINT', shutdown);
@@ -145,4 +171,3 @@ run().catch(err => {
     console.error('Fatal consumer error:', err);
     process.exit(1);
 });
-
