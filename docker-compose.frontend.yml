@@ -189,9 +189,7 @@ services:
     depends_on:
       tidb:
         condition: service_started
-      db-init:
-        condition: service_completed_successfully
-
+      
   consumer:
     build: ./consumer
     container_name: kafka_consumer
@@ -200,6 +198,10 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+      cdc-task:
+        condition: service_completed_successfully
+
+        
     networks:
       - app-network
 
