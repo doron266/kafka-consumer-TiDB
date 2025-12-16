@@ -33,6 +33,7 @@ from .serializers import UserSerializer, LoginSerializer
 )
 @api_view(["GET"])
 def get_users(request):
+    """Return all users or a specific user filtered by email query param."""
     if "email" in request.GET:
         email = request.GET["email"]
         if not email:
@@ -69,6 +70,7 @@ def get_users(request):
 )
 @api_view(["POST"])
 def add_user(request):
+    """Create a new user record from the provided request payload."""
     try:
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -99,6 +101,7 @@ def add_user(request):
 )
 @api_view(["PUT"])
 def update_user(request):
+    """Update an existing user while keeping the email immutable."""
     email = request.query_params.get("email")
     if not email:
         return Response({"result": "error", "message": "Email parameter is missing"}, status=400)
@@ -132,6 +135,7 @@ def update_user(request):
 )
 @api_view(["DELETE"])
 def delete_user(request):
+    """Delete a user identified by the email query parameter."""
     email = request.query_params.get("email")
     if not email:
         return Response({"result": "error", "message": "Email parameter is missing"}, status=400)
@@ -166,6 +170,7 @@ def delete_user(request):
 )
 @api_view(["GET"])
 def get_logins(request):
+    """Fetch login events, optionally filtered by email."""
     email = request.query_params.get("email")
 
     try:
@@ -198,6 +203,7 @@ def get_logins(request):
 )
 @api_view(["POST"])
 def add_login(request):
+    """Record a login attempt for auditing purposes."""
     try:
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -220,6 +226,7 @@ def add_login(request):
 )
 @api_view(["DELETE"])
 def delete_logins_by_email(request):
+    """Remove all stored login events associated with the provided email."""
     email = request.query_params.get("email")
     if not email:
         return Response({"result": "error", "message": "Email parameter is missing"}, status=400)

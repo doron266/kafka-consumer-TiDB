@@ -3,6 +3,8 @@ from django.db import models
 
 
 class User(models.Model):
+    """Represents an application user account persisted in TiDB."""
+
     # id is created automatically as AutoField primary key (INT AUTO_INCREMENT)
     username = models.CharField(max_length=255, unique=True)
     email = models.EmailField(max_length=255, unique=True)
@@ -20,6 +22,8 @@ class User(models.Model):
 
 
 class Login(models.Model):
+    """Captures audit records whenever a user signs in."""
+
     username = models.CharField(max_length=255)
     email = models.EmailField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -16,6 +16,7 @@ const consumer = kafka.consumer({
 /**
  * Helpers
  */
+// Delay execution for the specified milliseconds to pace retries.
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const isEmptyBuffer = (buf) => {
@@ -24,6 +25,7 @@ const isEmptyBuffer = (buf) => {
     return buf.every(byte => byte === 0);
 };
 
+// Flatten TiCDC row metadata into a simple key/value object.
 const extractValues = (row) =>
     Object.fromEntries(
         Object.entries(row).map(([key, meta]) => [key, meta?.v])
@@ -39,6 +41,7 @@ const parseTiCDCMessage = (parsed) => {
 /**
  * Main runner
  */
+// Connect to Kafka, subscribe to TiCDC topics, and stream messages to stdout.
 const run = async () => {
     console.log('Starting CDC Consumer...');
 
@@ -151,6 +154,7 @@ const run = async () => {
 /**
  * Graceful shutdown
  */
+// Disconnect gracefully when the process receives a termination signal.
 const shutdown = async (signal) => {
     console.log(`Received ${signal}, shutting down...`);
     await consumer.disconnect();

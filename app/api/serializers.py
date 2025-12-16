@@ -3,6 +3,7 @@ from .models import User, Login
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Serialize user model fields for API requests and responses."""
     class Meta:
         model = User
         fields = [
@@ -17,6 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.ModelSerializer):
+    """Serialize login audit entries for transport over the API."""
     class Meta:
         model = Login
         fields = [
