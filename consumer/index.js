@@ -99,7 +99,7 @@ const run = async () => {
             }
 
             /**
-             * 4️⃣ Parse JSON
+             * this part is trying to create a clean json format
              */
             let parsed;
             try {
@@ -117,7 +117,7 @@ const run = async () => {
             }
 
             /**
-             * Topic-specific handling: those conditionals, 
+             * Topic-specific handling: those conditionals sections execute a diffrent console log based on the topic which the new log trigerred
              */
             if (topic === 'users') {
                 const { operation, data } = parseTiCDCMessage(parsed);
