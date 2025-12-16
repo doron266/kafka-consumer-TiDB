@@ -24,13 +24,16 @@ export default function App() {
     [form, isSubmitting],
   )
 
+  // Sync the form state with user input as they type.
   const handleChange = (event) => {
     const { name, value } = event.target
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
+  // Clear any prior form submission messages before the next action.
   const resetStatus = () => setStatus({ type: 'idle', message: '' })
 
+  // Verify that fetched credentials match what the user entered.
   const validateCredentials = (user) => {
     const usernameMatches = user.username === form.username
     const emailMatches = user.email === form.email
@@ -38,6 +41,7 @@ export default function App() {
     return usernameMatches && emailMatches && passwordMatches
   }
 
+  // Retrieve the server-side user record for the provided email.
   const fetchUser = async () => {
     const response = await fetch(`${API_BASE_URL}/users?email=${encodeURIComponent(form.email)}`)
     if (!response.ok) {
@@ -46,6 +50,7 @@ export default function App() {
     return response.json()
   }
 
+  // Record the login attempt for auditing and analytics.
   const recordLogin = async () => {
     await fetch(`${API_BASE_URL}/logins/add`, {
       method: 'POST',
@@ -56,6 +61,7 @@ export default function App() {
     })
   }
 
+  // Submit the sign-in form, validate credentials, and handle errors gracefully.
   const handleSubmit = async (event) => {
     event.preventDefault()
     resetStatus()
