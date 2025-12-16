@@ -69,7 +69,7 @@ const run = async () => {
         eachMessage: async ({ topic, partition, message }) => {
 
             /**
-             * 1️⃣ Empty / tombstone / binary-only messages
+             * Empty / tombstone / binary-only messages
              */
             if (isEmptyBuffer(message.value)) {
                 
@@ -77,13 +77,13 @@ const run = async () => {
             }
 
             /**
-             * 2️⃣ Convert to string & sanitize
+             * Convert to string & sanitize
              */
             const raw = message.value.toString('utf8');
             const cleaned = raw.replace(/\0/g, '').trim();
 
             /**
-             * 3️⃣ Still not JSON? Skip
+             * Still not JSON? Skip
              */
             if (!cleaned.startsWith('{')) {
                 console.log(JSON.stringify({
@@ -117,7 +117,7 @@ const run = async () => {
             }
 
             /**
-             * 5️⃣ Topic-specific handling
+             * Topic-specific handling: those conditionals, 
              */
             if (topic === 'users') {
                 const { operation, data } = parseTiCDCMessage(parsed);
